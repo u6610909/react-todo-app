@@ -1,21 +1,22 @@
 pipeline {
     agent any 
-    
+
     tools {
         nodejs 'node18'
     }
-    
+
     environment {
         DOCKER_HUB_USER = 'pratchanon'
         IMAGE_NAME = 'finead-todo-app'
         DOCKER_HUB_CREDS = 'docker-hub-credentials'
+        // Add this line to fix the arm64 Chromium error
+        PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = 'true'
     }
 
     stages {
         stage('Build') {
             steps {
                 echo 'Building the application...'
-                // We use 'sh' to run commands directly on the Jenkins node
                 sh 'npm install'
             }
         }
