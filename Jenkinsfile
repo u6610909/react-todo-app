@@ -1,11 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'node:18-alpine'
-            // This allows the inner container to use the Docker engine on your Mac
-            args '-v /var/run/docker.sock:/var/run/docker.sock'
-        }
-    }
+    agent any 
 
     environment {
         DOCKER_HUB_USER = 'pratchanon'
@@ -13,43 +7,44 @@ pipeline {
         DOCKER_HUB_CREDS = 'docker-hub-credentials'
     }
 
-    stages { 
-        stage('Build') { 
-            steps { 
-                echo 'Building the application...' 
-                sh 'npm install' 
-            } 
-        } 
+    stages {
+        stage('Build') {
+            steps {
+                echo 'Building the application...'
+                // We use 'sh' to run commands directly on the Jenkins node
+                sh 'npm install'
+            }
+        }
 
-        stage('Test') { 
-            steps { 
-                echo 'Running unit tests...' 
-                sh 'npm test' 
-            } 
-        } 
+        stage('Test') {
+            steps {
+                echo 'Running unit tests...'
+                sh 'npm test'
+            }
+        }
 
-        stage('Containerize') { 
-            steps { 
-                echo 'Creating Docker image...' 
-                sh "docker build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest ." 
-            } 
-        } 
+        stage('Containerize') {
+            steps {
+                echo 'Creating Docker image...'
+                sh "docker build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest ."
+            }
+        }
 
-        stage('Push') { 
-            steps { 
-                echo 'Logging into Docker Hub and pushing image...' 
-                withCredentials([usernamePassword(credentialsId: "${DOCKER_HUB_CREDS}", passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) { 
-                    sh "echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin" 
-                    sh "docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest" 
-                } 
-            } 
-        } 
-    } 
+        stage('Push') {
+            steps {
+                echo 'Logging into Docker Hub and pushing image...'
+                withCredentials([usernamePassword(credentialsId: "${DOCKER_HUB_CREDS}", passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
+                    sh "echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin"
+                    sh "docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest"
+                }
+            }
+        }
+    }
 
-    post { 
-        always { 
-            echo 'Cleaning up workspace...' 
-            sh "docker rmi ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest || true" 
-        } 
-    } 
+    post {
+        always {
+            echo 'Cleaning up workspace...'
+            sh "docker rmi ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest || true"
+        }
+    }
 }
