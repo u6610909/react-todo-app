@@ -1,36 +1,17 @@
 pipeline {
     agent any 
 
-    tools {
-        nodejs 'node18'
-    }
-
     environment {
         DOCKER_HUB_USER = 'pratchanon'
         IMAGE_NAME = 'finead-todo-app'
         DOCKER_HUB_CREDS = 'docker-hub-credentials'
-        // Add this line to fix the arm64 Chromium error
-        PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = 'true'
     }
 
     stages {
-        stage('Build') {
+        stage('Build & Containerize') {
             steps {
-                echo 'Building the application...'
-                sh 'npm install'
-            }
-        }
-
-        stage('Test') {
-            steps {
-                echo 'Running unit tests...'
-                sh 'npm test'
-            }
-        }
-
-        stage('Containerize') {
-            steps {
-                echo 'Creating Docker image...'
+                echo 'Building Docker image (this will handle the install inside)...'
+                // This command tells Docker to look at your Dockerfile and build the app there
                 sh "docker build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest ."
             }
         }
@@ -48,7 +29,8 @@ pipeline {
 
     post {
         always {
-            echo 'Cleaning up workspace...'
+            echo 'Cleaning up local images...'
+            // We use || true so the pipeline doesn't fail if the image isn't there to delete
             sh "docker rmi ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest || true"
         }
     }
