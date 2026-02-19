@@ -1,6 +1,10 @@
 pipeline {
     agent any 
-
+    
+    tools {
+        nodejs 'node18'
+    }
+    
     environment {
         DOCKER_HUB_USER = 'pratchanon'
         IMAGE_NAME = 'finead-todo-app'
