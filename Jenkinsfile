@@ -1,13 +1,17 @@
-pipeline { 
-    agent any 
+pipeline {
+    agent {
+        docker {
+            image 'node:18-alpine'
+            // This allows the inner container to use the Docker engine on your Mac
+            args '-v /var/run/docker.sock:/var/run/docker.sock'
+        }
+    }
 
-    environment { 
-        // Replace with your actual Docker Hub username 
+    environment {
         DOCKER_HUB_USER = 'pratchanon'
-        IMAGE_NAME = 'finead-todo-app' 
-        // This ID must match the Credential ID created in Jenkins 
-        DOCKER_HUB_CREDS = 'docker-hub-credentials' 
-    } 
+        IMAGE_NAME = 'finead-todo-app'
+        DOCKER_HUB_CREDS = 'docker-hub-credentials'
+    }
 
     stages { 
         stage('Build') { 
